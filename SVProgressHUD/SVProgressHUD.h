@@ -25,6 +25,7 @@ typedef NSUInteger SVProgressHUDMaskType;
 + (void)showWithMaskType:(SVProgressHUDMaskType)maskType;
 
 + (void)showWithStatus:(NSString*)status;
++ (void)showWithStatus:(NSString*)status duration:(NSTimeInterval)duration;
 + (void)showWithStatus:(NSString*)status maskType:(SVProgressHUDMaskType)maskType;
 
 + (void)setStatus:(NSString*)string; // change the HUD loading status while it's showing

@@ -28,6 +28,7 @@
 @property (nonatomic, readonly) CGFloat visibleKeyboardHeight;
 
 - (void)showWithStatus:(NSString*)string maskType:(SVProgressHUDMaskType)hudMaskType networkIndicator:(BOOL)show;
+- (void)showWithStatus:(NSString *)string duration:(NSTimeInterval)duration;
 - (void)showImage:(UIImage*)image status:(NSString*)status duration:(NSTimeInterval)duration;
 - (void)dismiss;
 
@@ -77,6 +78,10 @@
 
 + (void)showWithStatus:(NSString*)status maskType:(SVProgressHUDMaskType)maskType {
     [[SVProgressHUD sharedView] showWithStatus:status maskType:maskType networkIndicator:NO];
+}
+
++ (void) showWithStatus:(NSString *)string duration:(NSTimeInterval)duration {
+    [[SVProgressHUD sharedView] showWithStatus:string duration:duration];
 }
 
 #pragma mark - Show then dismiss methods
@@ -189,12 +194,18 @@
         if(stringWidth > hudWidth)
             hudWidth = ceil(stringWidth/2)*2;
         
+        CGFloat labelOriginY = 66;
+        if(!self.imageView.image && self.spinnerView.isHidden)
+        {
+            labelOriginY = (hudHeight - stringHeight) * 1.f / 2;
+        }
+        
         if(hudHeight > 100) {
-            labelRect = CGRectMake(12, 66, hudWidth, stringHeight);
+            labelRect = CGRectMake(12, labelOriginY, hudWidth, stringHeight);
             hudWidth+=24;
         } else {
             hudWidth+=24;  
-            labelRect = CGRectMake(0, 66, hudWidth, stringHeight);   
+            labelRect = CGRectMake(0, labelOriginY, hudWidth, stringHeight);   
         }
     }
 	
@@ -351,8 +362,8 @@
         self.imageView.hidden = YES;
         self.maskType = hudMaskType;
         
-        [self setStatus:string];
         [self.spinnerView startAnimating];
+        [self setStatus:string];
         
         if(self.maskType != SVProgressHUDMaskTypeNone) {
             self.overlayWindow.userInteractionEnabled = YES;
@@ -389,13 +400,24 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         self.imageView.image = image;
         self.imageView.hidden = NO;
-        [self setStatus:string];
         [self.spinnerView stopAnimating];
+        [self setStatus:string];
         
         self.fadeOutTimer = [NSTimer scheduledTimerWithTimeInterval:duration target:self selector:@selector(dismiss) userInfo:nil repeats:NO];
     });
 }
 
+- (void)showWithStatus:(NSString *)string duration:(NSTimeInterval)duration {
+    if(![SVProgressHUD isVisible])
+        [SVProgressHUD show];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.spinnerView stopAnimating];
+        [self setStatus:string];
+        
+        self.fadeOutTimer = [NSTimer scheduledTimerWithTimeInterval:duration target:self selector:@selector(dismiss) userInfo:nil repeats:NO];
+    });
+}
 
 - (void)dismiss {
     dispatch_async(dispatch_get_main_queue(), ^{
